@@ -22,7 +22,6 @@ flags.DEFINE_string('image_dir', '', 'Path to images')
 flags.DEFINE_string('label_map_output_path', '', 'Path to output label map')
 FLAGS = flags.FLAGS
 
-
 def class_text_to_int(row_label):
     class_mapping = {
         "ba": 1, "ca": 2, "da": 3, "dha": 4, "ga": 5,
@@ -32,12 +31,10 @@ def class_text_to_int(row_label):
     }
     return class_mapping.get(row_label, None)
 
-
 def split(df, group):
     data = namedtuple('data', ['filename', 'object'])
     gb = df.groupby(group)
     return [data(filename, gb.get_group(x)) for filename, x in zip(gb.groups.keys(), gb.groups)]
-
 
 def create_tf_example(group, path):
     with tf.gfile.GFile(os.path.join(path, '{}'.format(group.filename)), 'rb') as fid:
@@ -79,15 +76,19 @@ def create_tf_example(group, path):
     }))
     return tf_example
 
-
 def create_label_map(pbtxt_path):
+    class_mapping = {
+        "ba": 1, "ca": 2, "da": 3, "dha": 4, "ga": 5,
+        "ha": 6, "ja": 7, "ka": 8, "la": 9, "ma": 10,
+        "na": 11, "nga": 12, "nya": 13, "pa": 14, "ra": 15,
+        "sa": 16, "ta": 17, "tha": 18, "wa": 19, "ya": 20
+    }
     label_map_content = ''
     for class_name, class_id in class_mapping.items():
         label_map_content += f"item {{\n  id: {class_id}\n  name: '{class_name}'\n}}\n"
 
     with open(pbtxt_path, 'w') as f:
         f.write(label_map_content)
-
 
 def main(_):
     writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
@@ -105,7 +106,6 @@ def main(_):
     if FLAGS.label_map_output_path:
         create_label_map(FLAGS.label_map_output_path)
         print('Successfully created the label map file: {}'.format(FLAGS.label_map_output_path))
-
 
 if __name__ == '__main__':
     tf.app.run()
